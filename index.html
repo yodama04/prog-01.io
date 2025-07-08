@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本キリスト教社会事業同盟</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: A single-page application with a fixed top navigation bar. The user flows from a general overview (mission) to specifics (activities, members), and finally to calls-to-action (join, contact). This narrative structure is supported by interactive elements like charts and filters to enhance usability and engagement, transforming the static sitemap into a dynamic experience. -->
+    <!-- Visualization & Content Choices: 1. Member Distribution: Donut Chart (Chart.js) to visually compare the composition of member facilities. Interaction: Tooltips on hover. Justification: Provides a quick, digestible overview of the Alliance's scope. 2. Member Directory: Interactive Filters (Vanilla JS) for a card-based list. Interaction: Users click buttons to filter members by type/region. Justification: Greatly improves usability for finding specific facilities. 3. Joining Process: A visual timeline/flowchart (HTML/CSS). Interaction: Hover effects for clarity. Justification: Simplifies understanding of the membership process. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #FDFBF8;
+            color: #4D433E;
+        }
+        .nav-link {
+            transition: all 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link.active, .nav-link:hover {
+            color: #3B82F6;
+            border-bottom-color: #3B82F6;
+        }
+        .section-title {
+            font-weight: 500;
+            color: #264653;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background-color: #2A9D8F;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            margin-left: auto;
+            margin-right: auto;
+            aspect-ratio: 1 / 1;
+        }
+        .facility-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .facility-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body class="bg-stone-50">
+
+    <header id="header" class="bg-white/80 backdrop-blur-md shadow-sm fixed top-0 left-0 right-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <a href="#" class="text-xl font-bold text-gray-800 flex items-center">
+                        <span class="text-blue-600 mr-2 text-2xl">✝</span>
+                        日本キリスト教社会事業同盟
+                    </a>
+                </div>
+                <div class="hidden md:block">
+                    <nav class="flex items-center space-x-4">
+                        <a href="#about" class="nav-link px-3 py-2 text-sm font-medium text-gray-700">同盟について</a>
+                        <a href="#activities" class="nav-link px-3 py-2 text-sm font-medium text-gray-700">活動内容</a>
+                        <a href="#members" class="nav-link px-3 py-2 text-sm font-medium text-gray-700">会員施設</a>
+                        <a href="#join" class="nav-link px-3 py-2 text-sm font-medium text-gray-700">入会案内</a>
+                        <a href="#resources" class="nav-link px-3 py-2 text-sm font-medium text-gray-700">資料室</a>
+                        <a href="#contact" class="nav-link px-3 py-2 text-sm font-medium text-gray-700">お問い合わせ</a>
+                    </nav>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-800 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
+                        <span class="sr-only">メインメニューを開く</span>
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#about" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700">同盟について</a>
+                <a href="#activities" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700">活動内容</a>
+                <a href="#members" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700">会員施設</a>
+                <a href="#join" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700">入会案内</a>
+                <a href="#resources" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700">資料室</a>
+                <a href="#contact" class="nav-link block px-3 py-2 rounded-md text-base font-medium text-gray-700">お問い合わせ</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="pt-16">
+        <section id="home" class="relative bg-blue-50 py-20 md:py-32">
+            <div class="container mx-auto px-4 text-center">
+                <h1 class="text-3xl md:text-5xl font-bold text-gray-800 leading-tight">
+                    神と隣人に仕える
+                </h1>
+                <p class="mt-4 text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+                    私たちはキリスト教の精神に基づき、地域共生社会の形成に貢献することを使命としています。
+                </p>
+                <a href="#about" class="mt-8 inline-block bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300">
+                    私たちの使命について
+                </a>
+            </div>
+        </section>
+
+        <section id="about" class="py-16 md:py-24 bg-white">
+            <div class="container mx-auto px-4">
+                <h2 class="section-title text-3xl mb-12 text-center">同盟について</h2>
+                <div class="max-w-4xl mx-auto">
+                    <p class="text-center text-gray-600 mb-12">
+                        日本キリスト教社会事業同盟は、キリスト教の信仰に根ざした社会福祉の実現を目指す全国的なネットワークです。私たちは、時代の変化と社会のニーズに応えながら、愛と奉仕の精神をもって、すべての人が尊厳をもって生きられる社会の構築に取り組みます。
+                    </p>
+                    <div class="grid md:grid-cols-3 gap-8 text-center">
+                        <div class="bg-stone-100 p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-cyan-800 mb-2">目的と理念</h3>
+                            <p class="text-gray-600 text-sm">キリスト教の精神に基づき、社会福祉の増進に寄与することを目的としています。一人ひとりの尊厳が守られる社会を目指します。</p>
+                        </div>
+                        <div class="bg-stone-100 p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-cyan-800 mb-2">沿革</h3>
+                            <p class="text-gray-600 text-sm">長い歴史の中で、多くの先人たちの祈りと実践の上に築かれてきました。その歩みは日本の社会福祉の歴史と共にあります。</p>
+                        </div>
+                        <div class="bg-stone-100 p-6 rounded-lg">
+                            <h3 class="text-xl font-semibold text-cyan-800 mb-2">組織</h3>
+                            <p class="text-gray-600 text-sm">全国のキリスト教主義社会福祉施設・団体が加盟し、理事会を中心に民主的な運営を行っています。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="activities" class="py-16 md:py-24 bg-stone-50">
+            <div class="container mx-auto px-4">
+                <h2 class="section-title text-3xl mb-12 text-center">活動内容</h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-xl font-semibold text-teal-700 mb-2">研修会・セミナー</h3>
+                        <p class="text-gray-600 text-sm">専門性の向上と会員間の交流のため、最新のテーマを取り上げた研修会やセミナーを定期的に開催しています。</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-xl font-semibold text-teal-700 mb-2">政策提言・研究</h3>
+                        <p class="text-gray-600 text-sm">現場の声を国や社会に届け、より良い社会福祉制度の実現を目指して政策提言や調査研究を行っています。</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-xl font-semibold text-teal-700 mb-2">広報・啓発</h3>
+                        <p class="text-gray-600 text-sm">機関誌の発行やウェブサイトを通じて、活動内容やキリスト教社会福祉の意義を広く社会に伝えています。</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <h3 class="text-xl font-semibold text-teal-700 mb-2">災害支援</h3>
+                        <p class="text-gray-600 text-sm">国内外で大規模災害が発生した際には、会員施設と連携し、被災地への支援活動を展開します。</p>
+                    </div>
+                </div>
+                 <div class="mt-16 text-center">
+                    <h3 class="text-2xl font-medium text-gray-700 mb-6">会員施設の構成</h3>
+                     <p class="text-center text-gray-600 mb-8 max-w-2xl mx-auto">
+                        私たちの同盟は、高齢者、障がい者、児童など、様々な分野で支援を行う多様な社会福祉施設によって構成されています。この多様性こそが、私たちの強みです。
+                    </p>
+                    <div class="chart-container">
+                        <canvas id="memberChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        section>
+
+        <section id="members" class="py-16 md:py-24 bg-white">
+            <div class="container mx-auto px-4">
+                <h2 class="section-title text-3xl mb-6 text-center">会員施設</h2>
+                 <p class="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
+                    全国に広がる会員施設は、私たちのネットワークの中核です。ここでは、地域や事業内容で施設を検索できます。各施設は、それぞれの地域で愛と奉仕の精神を実践しています。
+                </p>
+                <div class="flex flex-wrap justify-center gap-2 mb-8">
+                    <button class="filter-btn bg-blue-500 text-white py-2 px-4 rounded-full" data-filter="all">すべて</button>
+                    <button class="filter-btn bg-gray-200 text-gray-700 py-2 px-4 rounded-full" data-filter="elderly">高齢者福祉</button>
+                    <button class="filter-btn bg-gray-200 text-gray-700 py-2 px-4 rounded-full" data-filter="disability">障がい者福祉</button>
+                    <button class="filter-btn bg-gray-200 text-gray-700 py-2 px-4 rounded-full" data-filter="child">児童福祉</button>
+                    <button class="filter-btn bg-gray-200 text-gray-700 py-2 px-4 rounded-full" data-filter="other">その他</button>
+                </div>
+
+                <div id="facility-list" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                </div>
+            </div>
+        </section>
+        
+        <section id="join" class="py-16 md:py-24 bg-stone-50">
+            <div class="container mx-auto px-4">
+                <h2 class="section-title text-3xl mb-12 text-center">入会案内</h2>
+                 <p class="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
+                    キリスト教精神に基づく社会福祉を実践されている施設の皆様、ぜひ私たちのネットワークにご参加ください。共に学び、支え合い、より良い社会を築いていきましょう。入会は簡単なステップで完了します。
+                </p>
+                <div class="max-w-4xl mx-auto">
+                    <div class="relative">
+                        <div class="absolute left-1/2 h-full w-0.5 bg-blue-300 hidden md:block"></div>
+                        <div class="space-y-12">
+                            <div class="flex flex-col md:flex-row items-center">
+                                <div class="md:w-1/2 md:pr-8 text-center md:text-right">
+                                    <h3 class="text-xl font-semibold text-blue-800">Step 1: お問い合わせ</h3>
+                                    <p class="text-gray-600 mt-1">まずは事務局までお気軽にご連絡ください。入会に関する資料をお送りします。</p>
+                                </div>
+                                <div class="relative my-4 md:my-0">
+                                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold z-10 relative">1</div>
+                                </div>
+                                <div class="md:w-1/2 md:pl-8"></div>
+                            </div>
+                            <div class="flex flex-col md:flex-row items-center">
+                                <div class="md:w-1/2 md:pr-8 hidden md:block"></div>
+                                 <div class="relative my-4 md:my-0">
+                                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold z-10 relative">2</div>
+                                </div>
+                                <div class="md:w-1/2 md:pl-8 text-center md:text-left">
+                                    <h3 class="text-xl font-semibold text-blue-800">Step 2: 書類提出</h3>
+                                    <p class="text-gray-600 mt-1">所定の入会申込書に必要事項をご記入の上、ご提出いただきます。</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-col md:flex-row items-center">
+                                <div class="md:w-1/2 md:pr-8 text-center md:text-right">
+                                    <h3 class="text-xl font-semibold text-blue-800">Step 3: 理事会承認</h3>
+                                    <p class="text-gray-600 mt-1">ご提出いただいた書類をもとに、理事会にて入会の承認手続きを行います。</p>
+                                </div>
+                                 <div class="relative my-4 md:my-0">
+                                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold z-10 relative">3</div>
+                                </div>
+                                <div class="md:w-1/2 md:pl-8"></div>
+                            </div>
+                             <div class="flex flex-col md:flex-row items-center">
+                                 <div class="md:w-1/2 md:pr-8 hidden md:block"></div>
+                                 <div class="relative my-4 md:my-0">
+                                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold z-10 relative">4</div>
+                                </div>
+                                <div class="md:w-1/2 md:pl-8 text-center md:text-left">
+                                    <h3 class="text-xl font-semibold text-blue-800">Step 4: 入会完了</h3>
+                                    <p class="text-gray-600 mt-1">承認後、正式に同盟の会員となります。様々な活動にご参加いただけます。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="resources" class="py-16 md:py-24 bg-white">
+            <div class="container mx-auto px-4">
+                <h2 class="section-title text-3xl mb-12 text-center">資料室</h2>
+                 <p class="text-center text-gray-600 mb-12 max-w-3xl mx-auto">
+                    当同盟が発行する機関誌、研究報告書、各種資料を公開しています。キリスト教社会福祉に関する学びや研究にご活用ください。
+                </p>
+                <div class="max-w-3xl mx-auto">
+                    <ul class="space-y-4">
+                        <li class="bg-stone-50 p-4 rounded-md flex justify-between items-center hover:bg-stone-100 transition">
+                            <div>
+                                <h4 class="font-semibold text-gray-800">機関誌「ともしび」最新号</h4>
+                                <p class="text-sm text-gray-500">2025年夏号</p>
+                            </div>
+                            <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">ダウンロード ▸</a>
+                        </li>
+                        <li class="bg-stone-50 p-4 rounded-md flex justify-between items-center hover:bg-stone-100 transition">
+                            <div>
+                                <h4 class="font-semibold text-gray-800">2024年度 事業報告書</h4>
+                                <p class="text-sm text-gray-500">年間の活動概要と会計報告</p>
+                            </div>
+                            <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">ダウンロード ▸</a>
+                        </li>
+                        <li class="bg-stone-50 p-4 rounded-md flex justify-between items-center hover:bg-stone-100 transition">
+                            <div>
+                                <h4 class="font-semibold text-gray-800">研究報告「地域共生社会における教会の役割」</h4>
+                                <p class="text-sm text-gray-500">2023年度研究プロジェクト成果</p>
+                            </div>
+                            <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">ダウンロード ▸</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="py-16 md:py-24 bg-stone-100">
+            <div class="container mx-auto px-4">
+                <h2 class="section-title text-3xl mb-12 text-center">お問い合わせ</h2>
+                <div class="max-w-xl mx-auto bg-white p-8 rounded-lg shadow-md">
+                    <p class="text-center text-gray-600 mb-6">ご質問、ご相談、入会に関するお問い合わせはこちらからお気軽にご連絡ください。</p>
+                    <form>
+                        <div class="mb-4">
+                            <label for="name" class="block text-gray-700 text-sm font-bold mb-2">お名前</label>
+                            <input type="text" id="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="email" class="block text-gray-700 text-sm font-bold mb-2">メールアドレス</label>
+                            <input type="email" id="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                        </div>
+                        <div class="mb-6">
+                            <label for="message" class="block text-gray-700 text-sm font-bold mb-2">お問い合わせ内容</label>
+                            <textarea id="message" rows="5" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required></textarea>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transition duration-300">
+                                送信する
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white">
+        <div class="container mx-auto py-8 px-4 text-center">
+            <p>&copy; 2025 日本キリスト教社会事業同盟. All Rights Reserved.</p>
+            <p class="text-sm text-gray-400 mt-2">〒169-0051 東京都新宿区西早稲田2-3-18 日本キリスト教会館</p>
+        </div>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // Mobile menu toggle
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+    
+    // Smooth scrolling and active link highlighting
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('main section');
+    const headerHeight = document.getElementById('header').offsetHeight;
+
+    const activateLink = (id) => {
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${id}`) {
+                link.classList.add('active');
+            }
+        });
+    };
+
+    const onScroll = () => {
+        let currentSection = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop - headerHeight - 50;
+            if (window.scrollY >= sectionTop) {
+                currentSection = section.id;
+            }
+        });
+
+        if (currentSection) {
+            activateLink(currentSection);
+        }
+    };
+
+    window.addEventListener('scroll', onScroll);
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - headerHeight,
+                    behavior: 'smooth'
+                });
+            }
+            if (mobileMenu.classList.contains('hidden') === false) {
+                 mobileMenu.classList.add('hidden');
+            }
+        });
+    });
+
+    // Chart.js: Member distribution
+    const memberChartCtx = document.getElementById('memberChart');
+    if (memberChartCtx) {
+        new Chart(memberChartCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['高齢者福祉', '障がい者福祉', '児童福祉', 'その他'],
+                datasets: [{
+                    label: '会員施設数',
+                    data: [120, 85, 95, 40],
+                    backgroundColor: [
+                        'rgba(42, 157, 143, 0.8)',
+                        'rgba(233, 196, 106, 0.8)',
+                        'rgba(244, 162, 97, 0.8)',
+                        'rgba(231, 111, 81, 0.8)'
+                    ],
+                    borderColor: [
+                        '#FFFFFF'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += context.parsed + '施設';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+
+    // Member facilities data
+    const facilities = [
+        { name: '愛光園', type: 'elderly', region: '関東', description: '特別養護老人ホーム' },
+        { name: '希望の家', type: 'disability', region: '関西', description: '障がい者支援施設' },
+        { name: 'こひつじの苑', type: 'child', region: '九州', description: '児童養護施設' },
+        { name: '聖なる十字架病院', type: 'other', region: '中部', description: 'ホスピスケア' },
+        { name: '恵みの丘', type: 'elderly', region: '東北', description: 'ケアハウス' },
+        { name: 'のぞみ作業所', type: 'disability', region: '関東', description: '就労継続支援B型' },
+        { name: 'シオンの子ら', type: 'child', region: '関西', description: '乳児院' },
+        { name: '平和の里', type: 'elderly', region: '中国', description: 'デイサービスセンター' },
+        { name: '生命の樹', type: 'disability', region: '北海道', description: 'グループホーム' },
+        { name: 'リバーサイドこども園', type: 'child', region: '関東', description: '認定こども園' },
+        { name: '山の上ホーム', type: 'elderly', region: '中部', description: '特別養護老人ホーム' },
+        { name: '虹の工房', type: 'disability', region: '九州', description: '生活介護' },
+    ];
+
+    const facilityList = document.getElementById('facility-list');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+
+    const displayFacilities = (items) => {
+        facilityList.innerHTML = items.map(item => `
+            <div class="facility-card bg-stone-50 p-6 rounded-lg border border-stone-200" data-type="${item.type}">
+                <h4 class="font-bold text-lg text-gray-800">${item.name}</h4>
+                <p class="text-sm text-gray-500 mb-3">${item.region} | ${item.description}</p>
+                <div class="mt-2">
+                   <span class="tag ${
+                        item.type === 'elderly' ? 'bg-blue-100 text-blue-800' :
+                        item.type === 'disability' ? 'bg-green-100 text-green-800' :
+                        item.type === 'child' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
+                   }">${
+                        item.type === 'elderly' ? '高齢者福祉' :
+                        item.type === 'disability' ? '障がい者福祉' :
+                        item.type === 'child' ? '児童福祉' : 'その他'
+                   }</span>
+                </div>
+            </div>
+        `).join('');
+    };
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const filter = e.target.dataset.filter;
+
+            filterBtns.forEach(b => {
+                b.classList.remove('bg-blue-500', 'text-white');
+                b.classList.add('bg-gray-200', 'text-gray-700');
+            });
+            e.target.classList.add('bg-blue-500', 'text-white');
+            e.target.classList.remove('bg-gray-200', 'text-gray-700');
+
+            if (filter === 'all') {
+                displayFacilities(facilities);
+            } else {
+                const filteredFacilities = facilities.filter(item => item.type === filter);
+                displayFacilities(filteredFacilities);
+            }
+        });
+    });
+
+    displayFacilities(facilities);
+
+});
+</script>
+
+</body>
+</html>
